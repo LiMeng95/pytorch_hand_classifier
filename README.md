@@ -32,7 +32,7 @@
 5. optimizer、criterion、lr_scheduler: 定义优化器为SGD优化器，损失函数为CrossEntropyLoss，学习率调整策略采用ReduceLROnPlateau。
 6. trainer: 定义了用于模型训练和验证的类Trainer，trainer为Trainer的实例化。在Trainer的构造函数中根据步骤二中的参数设定，对训练过程中的参数进行设置，包括训练数据、测试数据、模型、是否使用GPU等。
    Trainer中定义了训练和测试函数，分别为`train()`和`_val_one_epoch()`。`train()`函数中，根据设定的最大循环次数进行训练，每次循环调用`_train_one_epoch()`函数进行单步训练。训练过程中的loss保存在loss_meter中，confusion_matrix中保存具体预测结果。`_val_one_epoch()`函数对测试集在当前训练模型上的表现进行测试，具体预测结果保存在val_cm中，预测精度保存在val_accuracy中。
-   最后，通过`Visdom`工具对结果进行输出，包括loss和accuracy以及训练日志。可以在浏览器地址http://localhost:8097中查看结果。
+   最后，通过`Visdom`工具对结果进行输出，包括loss和accuracy以及训练日志。可以在浏览器地址 `http://localhost:8097` 中查看结果。
 
 ### Result
 
