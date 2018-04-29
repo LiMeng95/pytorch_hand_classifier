@@ -8,7 +8,7 @@
 
 - 数据准备：
   - 将image文件夹放在`./data/`路径下。[image文件下载](https://cloud.tsinghua.edu.cn/f/787490e187714336aae2/?dl=1)
-  - 训练好的模型将以`.pth`文件的形式保存在`./models/文件夹下。训练好的模型[下载](https://cloud.tsinghua.edu.cn/d/dbf0243babd443c49e21/)
+  - 训练好的模型将以`.pth`文件的形式保存在`./models/`文件夹下。训练好的模型[下载](https://cloud.tsinghua.edu.cn/d/dbf0243babd443c49e21/)
 
 
 - 库声明：PIL、torch、torchvision、numpy、visdom
