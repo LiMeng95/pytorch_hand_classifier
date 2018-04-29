@@ -8,10 +8,14 @@
 
 - 数据准备：
   - 将image文件夹放在`./data/`路径下。[image文件下载](https://cloud.tsinghua.edu.cn/f/787490e187714336aae2/?dl=1)
-  - 训练好的模型将以`.pth`文件的形式保存在`./models/`文件夹下。训练好的模型[下载](https://cloud.tsinghua.edu.cn/d/dbf0243babd443c49e21/)
+  - 训练好的模型[下载](https://cloud.tsinghua.edu.cn/d/dbf0243babd443c49e21/)（可选）
+- 运行代码：
+  - 首先使用`nohup python -m visdom.server &`打开`Visdom`服务器
+  - 然后运行`classifier_train.py`即可。
+  - 训练好的模型将以`.pth`文件的形式保存在`./models/`文件夹下。
 
 
-- 库声明：PIL、torch、torchvision、numpy、visdom
+- 使用的库：PIL、torch、torchvision、numpy、visdom
 
 - ResNet：
 
@@ -22,8 +26,6 @@
 ![ResNet34 and ResNet101](./pic/ResNet34_ResNet101.jpg)
 
 ### 代码流程
-
-0. 首先使用`nohup python -m visdom.server &`打开`Visdom`服务器，然后运行`classifier_train.py即可`。
 
 1. Hyper-params: 设置数据加载路径、模型保存路径、初始学习率等参数。
 2. Training parameters: 用于定义模型训练中的相关参数，例如最大迭代次数、优化器、损失函数、是否使用GPU等、模型保存频率等
