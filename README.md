@@ -4,7 +4,7 @@
 
 ### 步骤
 
-使用Pytorch为工具，以ResNet50或者ResNet101为基础，实现手势识别。
+使用Pytorch为工具，以ResNet34或者ResNet101为基础，实现手势识别。
 
 - 数据准备：
   - 训练：将image文件夹放在`./data/`路径下。[image文件下载](https://cloud.tsinghua.edu.cn/f/787490e187714336aae2/?dl=1)
@@ -13,12 +13,15 @@
   - 首先使用`nohup python -m visdom.server &`打开`Visdom`服务器
   - 然后运行`classifier_train.py`即可。
   - 训练好的模型将以`.pth`文件的形式保存在`./models/`文件夹下。
+  - 注意：需根据GPU情况调整代码中的`batch_size`参数，确保显存不溢出。
+    - ResNet34，1GPU，`batch_size=120`，显存占用<7G
+    - ResNet101，1GPU，`batch_size=60`，显存占用<10G
 - 测试步骤：
   - 修改`classifier_test.py`文件相关参数，其中`ckpt`表示模型加载位置，`testdata_dir`表示待测试图片文件夹。注意`ckpt`需要与`model`选择相对应。
   - 然后运行`classifier_test.py`即可。在控制台输出每张图片的预测结果。
 
 
-## 方法
+### 方法
 
 - 使用的库：PIL、torch、torchvision、numpy、visdom
 
@@ -43,7 +46,7 @@
    `_val_one_epoch()`函数对测试集在当前训练模型上的表现进行测试，具体预测结果保存在val_cm中，预测精度保存在val_accuracy中；
    最后，通过`Visdom`工具对结果进行输出，包括loss和accuracy以及训练日志。可以在浏览器地址 `http://localhost:8097` 中查看结果。
 
-## 测试代码流程
+### 测试代码流程
 
 1. Test parameters: 用于定义模型测试中的相关参数
 2. models: 从定义的ResNet类，实例化ResNet34及ResNet101网络模型。
