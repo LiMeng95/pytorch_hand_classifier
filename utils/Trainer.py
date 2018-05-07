@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 import numpy as np
 
 import torch as t
@@ -61,6 +62,11 @@ class Trainer(object):
         # load model
         self.model = model
         logger.info('Set output dir to {}'.format(self.params.save_dir))
+        if os.path.isdir(self.params.save_dir):
+            pass
+        else:
+            os.makedirs(self.params.save_dir)
+
         ckpt = self.params.ckpt
         if ckpt is not None:
             self._load_ckpt(ckpt)
