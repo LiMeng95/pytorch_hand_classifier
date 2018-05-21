@@ -10,7 +10,7 @@ from network import resnet34, resnet101
 # Hyper-params
 data_root = './data/'
 model_path = './models/'
-batch_size = 60  # resnet34: batch_size=120
+batch_size = 60  # batch_size per GPU, if use GPU mode; resnet34: batch_size=120
 num_workers = 2
 
 init_lr = 0.01
@@ -23,7 +23,7 @@ nesterov = True
 params = Trainer.TrainParams()
 params.max_epoch = 1000
 params.criterion = nn.CrossEntropyLoss()
-params.use_gpu = True
+params.gpus = [0]  # set 'params.gpus=[]' to use CPU mode
 params.save_dir = model_path
 params.ckpt = None
 params.save_freq_epoch = 100
@@ -32,6 +32,8 @@ params.save_freq_epoch = 100
 print("Loading dataset...")
 train_data = Hand(data_root,train=True)
 val_data = Hand(data_root,train=False)
+
+batch_size = batch_size if len(params.gpus) == 0 else batch_size*len(params.gpus)
 
 train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 print('train dataset len: {}'.format(len(train_dataloader.dataset)))

@@ -2,6 +2,13 @@
 
 对手势数字数据集进行分类。数据采用`./data/images/`中的数据。其中，训练集4324张，测试集484张，手势数字类别：0-5，图像大小均为64*64。
 
+### Update
+
+- 180521：增加**多GPU**支持
+  - 设置`classifier_train.py`及`classifier_test.py`文件中的`params.gpus `变量设定使用的GPU序号（与`nvidia-smi`命令显示的GPU需要对应）。例如：`params.gpus = [2,3]`。
+  - **CPU模式**：设定`params.gpus = []`
+  - 由于目前测试部分计算量小，因此当前代码执行测试步骤（`classifier_test.py`）时，仅使用指定的第一个GPU（`params.gpus[0] `）
+
 ### 步骤
 
 使用Pytorch为工具，以ResNet34或者ResNet101为基础，实现手势识别。

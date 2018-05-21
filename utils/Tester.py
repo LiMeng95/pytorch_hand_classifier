@@ -12,7 +12,7 @@ import torchvision.transforms.functional as tv_F
 
 class TestParams(object):
     # params based on your local env
-    use_gpu = False             # default do not use gpu
+    gpus = []  # default to use CPU mode
 
     # loading existing checkpoint
     ckpt = './models/ckpt_epoch_800_res101.pth'     # path to the ckpt file
@@ -34,9 +34,11 @@ class Tester(object):
             self._load_ckpt(ckpt)
             logger.info('Load ckpt from {}'.format(ckpt))
 
-        # set CUDA_VISIBLE_DEVICES
-        if self.params.use_gpu:
-            logger.info('Set CUDA_VISIBLE_DEVICES to 0...')
+        # set CUDA_VISIBLE_DEVICES, 1 GPU is enough
+        if len(self.params.gpus) > 0:
+            gpu_test = str(self.params.gpus[0])
+            os.environ['CUDA_VISIBLE_DEVICES'] = gpu_test
+            logger.info('Set CUDA_VISIBLE_DEVICES to {}...'.format(gpu_test))
             self.model = self.model.cuda()
 
         self.model.eval()
@@ -52,7 +54,7 @@ class Tester(object):
             img = tv_F.to_tensor(tv_F.resize(img, (224, 224)))
             img = tv_F.normalize(img, [0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             img_input = Variable(torch.unsqueeze(img, 0))
-            if self.params.use_gpu:
+            if len(self.params.gpus) > 0:
                 img_input = img_input.cuda()
 
             output = self.model(img_input)

@@ -4,6 +4,7 @@ import os
 import numpy as np
 
 import torch as t
+import torch.nn as nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.autograd import Variable
 from torchnet import meter
@@ -28,7 +29,7 @@ class TrainParams(object):
     lr_scheduler = None         # should be an instance of ReduceLROnPlateau or _LRScheduler
 
     # params based on your local env
-    use_gpu = False             # default do not use gpu
+    gpus = []  # default to use CPU mode
     save_dir = './models/'            # default `save_dir`
 
     # loading existing checkpoint
@@ -77,8 +78,12 @@ class Trainer(object):
         self.confusion_matrix = meter.ConfusionMeter(6)
 
         # set CUDA_VISIBLE_DEVICES
-        if self.params.use_gpu:
-            logger.info('Set CUDA_VISIBLE_DEVICES to 0...')
+        if len(self.params.gpus) > 0:
+            gpus = ','.join([str(x) for x in self.params.gpus])
+            os.environ['CUDA_VISIBLE_DEVICES'] = gpus
+            self.params.gpus = tuple(range(len(self.params.gpus)))
+            logger.info('Set CUDA_VISIBLE_DEVICES to {}...'.format(gpus))
+            self.model = nn.DataParallel(self.model, device_ids=self.params.gpus)
             self.model = self.model.cuda()
 
         self.model.train()
@@ -126,7 +131,7 @@ class Trainer(object):
             # train model
             inputs = Variable(data)
             target = Variable(label)
-            if self.params.use_gpu:
+            if len(self.params.gpus) > 0:
                 inputs = inputs.cuda()
                 target = target.cuda()
 
@@ -153,7 +158,7 @@ class Trainer(object):
             # val model
             inputs = Variable(data, volatile=True)
             target = Variable(label.type(t.LongTensor), volatile=True)
-            if self.params.use_gpu:
+            if len(self.params.gpus) > 0:
                 inputs = inputs.cuda()
                 target = target.cuda()
 

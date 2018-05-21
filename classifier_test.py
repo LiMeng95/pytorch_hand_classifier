@@ -4,7 +4,7 @@ from network import resnet34, resnet101
 
 # Set Test parameters
 params = Tester.TestParams()
-params.use_gpu = True
+params.gpus = [0]  # set 'params.gpus=[]' to use CPU model. if len(params.gpus)>1, default to use params.gpus[0] to test
 params.ckpt = './models/ckpt_epoch_800_res101.pth'  #'./models/ckpt_epoch_400_res34.pth'
 params.testdata_dir = './testimg/'
 
