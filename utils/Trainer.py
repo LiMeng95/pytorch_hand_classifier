@@ -91,7 +91,7 @@ class Trainer(object):
     def train(self):
         # vis = Visualizer()
         best_loss = np.inf
-        best_accuracy = np.inf
+        best_accuracy = 0
         for epoch in range(self.last_epoch, self.params.max_epoch):
 
             self.loss_meter.reset()
@@ -110,11 +110,11 @@ class Trainer(object):
             val_cm, val_accuracy = self._val_one_epoch()
 
             # save model
-            if val_accuracy < best_accuracy:
+            if val_accuracy > best_accuracy:
                 logger.info('Found a better ACC ckpt ({:.3f} -> {:.3f}), '.format(
                     best_accuracy, val_accuracy))
                 best_accuracy = val_accuracy
-                save_name = self.params.save_dir + 'ckpt_epoch{0}_acc{1}.pth'.format(
+                save_name = self.params.save_dir + 'ckpt_epoch{:d}_acc{:.3f}.pth'.format(
                     self.last_epoch, best_accuracy)
                 if len(self.params.gpus) > 1:
                     t.save(self.model.module.state_dict(), save_name)
