@@ -6,11 +6,10 @@ import numpy as np
 import torch as t
 import torch.nn as nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torch.autograd import Variable
 from torchnet import meter
 
 from .log import logger
-from .visualize import Visualizer
+# from .visualize import Visualizer
 
 
 def get_learning_rates(optimizer):
@@ -83,14 +82,16 @@ class Trainer(object):
             os.environ['CUDA_VISIBLE_DEVICES'] = gpus
             self.params.gpus = tuple(range(len(self.params.gpus)))
             logger.info('Set CUDA_VISIBLE_DEVICES to {}...'.format(gpus))
-            self.model = nn.DataParallel(self.model, device_ids=self.params.gpus)
+            if len(self.params.gpus) > 1:
+                self.model = nn.DataParallel(self.model, device_ids=self.params.gpus)
             self.model = self.model.cuda()
 
         self.model.train()
 
     def train(self):
-        vis = Visualizer()
+        # vis = Visualizer()
         best_loss = np.inf
+        best_accuracy = np.inf
         for epoch in range(self.last_epoch, self.params.max_epoch):
 
             self.loss_meter.reset()
@@ -101,23 +102,31 @@ class Trainer(object):
 
             self._train_one_epoch()
 
-            # save model
-            if (self.last_epoch % self.params.save_freq_epoch == 0) or (self.last_epoch == self.params.max_epoch - 1):
-                save_name = self.params.save_dir + 'ckpt_epoch_{}.pth'.format(self.last_epoch)
-                t.save(self.model.state_dict(), save_name)
+            if self.loss_meter.value()[0] < best_loss:
+                logger.info('Found a better LOSS ckpt ({:.3f} -> {:.3f}), '.format(
+                    best_loss, self.loss_meter.value()[0]))
+                best_loss = self.loss_meter.value()[0]
 
             val_cm, val_accuracy = self._val_one_epoch()
 
-            if self.loss_meter.value()[0] < best_loss:
-                logger.info('Found a better ckpt ({:.3f} -> {:.3f}), '.format(best_loss, self.loss_meter.value()[0]))
-                best_loss = self.loss_meter.value()[0]
+            # save model
+            if val_accuracy < best_accuracy:
+                logger.info('Found a better ACC ckpt ({:.3f} -> {:.3f}), '.format(
+                    best_accuracy, val_accuracy))
+                best_accuracy = val_accuracy
+                save_name = self.params.save_dir + 'ckpt_epoch{0}_acc{1}.pth'.format(
+                    self.last_epoch, best_accuracy)
+                if len(self.params.gpus) > 1:
+                    t.save(self.model.module.state_dict(), save_name)
+                else:
+                    t.save(self.model.state_dict(), save_name)
 
             # visualize
-            vis.plot('loss', self.loss_meter.value()[0])
-            vis.plot('val_accuracy', val_accuracy)
-            vis.log("epoch:{epoch},lr:{lr},loss:{loss},train_cm:{train_cm},val_cm:{val_cm}".format(
-                epoch=epoch, loss=self.loss_meter.value()[0], val_cm=str(val_cm.value()),
-                train_cm=str(self.confusion_matrix.value()), lr=get_learning_rates(self.optimizer)))
+            # vis.plot('loss', self.loss_meter.value()[0])
+            # vis.plot('val_accuracy', val_accuracy)
+            # vis.log("epoch:{epoch},lr:{lr},loss:{loss},train_cm:{train_cm},val_cm:{val_cm}".format(
+            #     epoch=epoch, loss=self.loss_meter.value()[0], val_cm=str(val_cm.value()),
+            #     train_cm=str(self.confusion_matrix.value()), lr=get_learning_rates(self.optimizer)))
 
             # adjust the lr
             if isinstance(self.lr_scheduler, ReduceLROnPlateau):
@@ -127,10 +136,8 @@ class Trainer(object):
         self.model.load_state_dict(t.load(ckpt))
 
     def _train_one_epoch(self):
-        for step, (data, label) in enumerate(self.train_data):
+        for step, (inputs, target) in enumerate(self.train_data):
             # train model
-            inputs = Variable(data)
-            target = Variable(label)
             if len(self.params.gpus) > 0:
                 inputs = inputs.cuda()
                 target = target.cuda()
@@ -145,25 +152,24 @@ class Trainer(object):
             self.optimizer.step(None)
 
             # meters update
-            self.loss_meter.add(loss.data[0])
-            self.confusion_matrix.add(score.data, target.data)
+            self.loss_meter.add(loss.item())
+            self.confusion_matrix.add(score.data.squeeze(), target.data)
 
     def _val_one_epoch(self):
         self.model.eval()
         confusion_matrix = meter.ConfusionMeter(6)
         logger.info('Val on validation set...')
 
-        for step, (data, label) in enumerate(self.val_data):
+        for step, (inputs, target) in enumerate(self.val_data):
 
             # val model
-            inputs = Variable(data, volatile=True)
-            target = Variable(label.type(t.LongTensor), volatile=True)
-            if len(self.params.gpus) > 0:
-                inputs = inputs.cuda()
-                target = target.cuda()
+            with t.no_grad():
+                if len(self.params.gpus) > 0:
+                    inputs = inputs.cuda()
+                    target = target.cuda()
 
-            score = self.model(inputs)
-            confusion_matrix.add(score.data.squeeze(), label.type(t.LongTensor))
+                score = self.model(inputs)
+                confusion_matrix.add(score.data.squeeze(), target.data)
 
         self.model.train()
         cm_value = confusion_matrix.value()

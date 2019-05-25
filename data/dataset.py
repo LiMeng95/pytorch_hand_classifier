@@ -23,15 +23,15 @@ class Hand(data.Dataset):
 
             if not train: 
                 self.transforms = T.Compose([
-                    T.Scale(224),
+                    T.Resize(224),
                     T.CenterCrop(224),
                     T.ToTensor(),
                     normalize
                     ]) 
             else:
                 self.transforms = T.Compose([
-                    T.Scale(256),
-                    T.RandomSizedCrop(224),
+                    T.Resize(256),
+                    T.RandomResizedCrop(224),
                     T.RandomHorizontalFlip(),
                     T.ToTensor(),
                     normalize
