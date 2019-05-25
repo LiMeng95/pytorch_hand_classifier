@@ -104,6 +104,6 @@ venv.bak/
 .mypy_cache/
 # own ignore
 *.pyc
-DN_Gray/experiment/
-backup_exp/
 .idea
+/data/images
+/model
