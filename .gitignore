@@ -106,4 +106,4 @@ venv.bak/
 *.pyc
 .idea
 /data/images
-/model
+model
